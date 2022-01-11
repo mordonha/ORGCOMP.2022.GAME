@@ -5,31 +5,40 @@
 ; Paulo Marcos Ordonha
 
 ; Variaveis e constantes
+posPersonagem: var #1			; Contem a posicao atual da Nave
+posAntPersonagem: var #1		; Contem a posicao anterior da Nave
 
-; ______________________
 
 ; main
 main:
-call ApagaTela
-	loadn R1, #tela1Linha0	; Endereco onde comeca a primeira linha do cenario!!
+	call ApagaTela
+	loadn R1, #tela0Linha0	; Endereco onde comeca a primeira linha do cenario!!
 	loadn R2, #1536  			; cor teal!
 	call ImprimeTela2   		;  Rotina de Impresao de Cenario na Tela Inteira
-    
-	loadn R1, #tela2Linha0	; Endereco onde comeca a primeira linha do cenario!!
-	loadn R2, #512  			; cor verde!
-	call ImprimeTela2   		;  Rotina de Impresao de Cenario na Tela Inteira
-    
-	loadn R1, #tela3Linha0	; Endereco onde comeca a primeira linha do cenario!!
-	loadn R2, #2816   			; cor amrelo!
-	call ImprimeTela2   		;  Rotina de Impresao de Cenario na Tela Inteira
-
-	loadn R1, #tela4Linha0	; Endereco onde comeca a primeira linha do cenario!!
-	loadn R2, #256   			; cor marron!
-	call ImprimeTela2   		;  Rotina de Impresao de Cenario na Tela Inteira
 	
-	loadn R1, #tela5Linha0	; Endereco onde comeca a primeira linha do cenario!!
-	loadn R2, #3072   			; cor azul!
+	call ApagaTela
+	loadn R1, #tela7Linha0	; Endereco onde comeca a primeira linha do cenario!!
+	loadn R2, #3584  			; cor teal!
 	call ImprimeTela2   		;  Rotina de Impresao de Cenario na Tela Inteira
+    
+    Loadn R0, #1100			
+	store posPersonagem, R0		; Zera Posicao Atual da Nave
+	store posAntPersonagem, R0	; Zera Posicao Anterior da Nave
+	
+	Loadn R0, #0			; Contador para os Mods	= 0
+	loadn R2, #0			; Para verificar se (mod(c/10)==0
+	
+	Loop:
+	
+		loadn R1, #5
+		mod R1, R0, R1
+		cmp R1, R2		; if (mod(c/10)==0
+		ceq MoveNave	; Chama Rotina de movimentacao da Nave
+	
+	
+		call Delay
+		inc R0 	;c++
+		jmp Loop
 ; /main
 
 
@@ -40,6 +49,180 @@ call ApagaTela
 ;************************************************************
 ;                         FUNÇÕES
 ;************************************************************
+
+MoveNave:
+	push r0
+	push r1
+	
+	call MoveNave_RecalculaPos		; Recalcula Posicao da Nave
+
+; So' Apaga e Redesenha se (pos != posAnt)
+;	If (posNave != posAntNave)	{	
+	load r0, posPersonagem
+	load r1, posAntPersonagem
+	cmp r0, r1
+	jeq MoveNave_Skip
+		call MoveNave_Apaga
+		call MoveNave_Desenha		;}
+  MoveNave_Skip:
+	
+	pop r1
+	pop r0
+	rts
+
+;--------------------------------
+	
+MoveNave_Apaga:		; Apaga a Nave preservando o Cenario!
+	push R0
+	push R1
+	push R2
+	push R3
+	push R4
+	push R5
+
+	load R0, posAntPersonagem	; R0 = posAnt
+	
+	; --> R2 = Tela1Linha0 + posAnt + posAnt/40  ; tem que somar posAnt/40 no ponteiro pois as linas da string terminam com /0 !!
+
+	loadn R1, #tela0Linha0	; Endereco onde comeca a primeira linha do cenario!!
+	add R2, R1, r0	; R2 = Tela1Linha0 + posAnt
+	loadn R4, #40
+	div R3, R0, R4	; R3 = posAnt/40
+	add R2, R2, R3	; R2 = Tela1Linha0 + posAnt + posAnt/40
+	
+	loadi R5, R2	; R5 = Char (Tela(posAnt))
+	
+	outchar R5, R0	; Apaga o Obj na tela com o Char correspondente na memoria do cenario
+	
+	pop R5
+	pop R4
+	pop R3
+	pop R2
+	pop R1
+	pop R0
+	rts
+;----------------------------------	
+	
+MoveNave_RecalculaPos:		; Recalcula posicao do Personagem em funcao das Teclas pressionadas
+	push R0
+	push R1
+	push R2
+	push R3
+
+	load R0, posPersonagem
+	
+	inchar R1				; Le Teclado para controlar o Personagem
+	loadn R2, #'a'
+	cmp R1, R2
+	jeq MoveNave_RecalculaPos_A
+	
+	loadn R2, #'d'
+	cmp R1, R2
+	jeq MoveNave_RecalculaPos_D
+		
+	loadn R2, #'w'
+	cmp R1, R2
+	jeq MoveNave_RecalculaPos_W
+		
+	loadn R2, #'s'
+	cmp R1, R2
+	jeq MoveNave_RecalculaPos_S
+	
+	;loadn R2, #' '
+	;cmp R1, R2
+	;jeq MoveNave_RecalculaPos_Tiro
+	
+  MoveNave_RecalculaPos_Fim:	; Se nao for nenhuma tecla valida, vai embora
+	store posPersonagem, R0
+	pop R3
+	pop R2
+	pop R1
+	pop R0
+	rts
+
+  MoveNave_RecalculaPos_A:	; Move Nave para Esquerda
+	loadn R1, #40
+	loadn R2, #0
+	mod R1, R0, R1		; Testa condicoes de Contorno 
+	cmp R1, R2
+	jeq MoveNave_RecalculaPos_Fim
+	dec R0	; pos = pos -1
+	jmp MoveNave_RecalculaPos_Fim
+		
+  MoveNave_RecalculaPos_D:	; Move Nave para Direita	
+	loadn R1, #40
+	loadn R2, #39
+	mod R1, R0, R1		; Testa condicoes de Contorno 
+	cmp R1, R2
+	jeq MoveNave_RecalculaPos_Fim
+	inc R0	; pos = pos + 1
+	jmp MoveNave_RecalculaPos_Fim
+	
+  MoveNave_RecalculaPos_W:	; Move Nave para Cima
+	loadn R1, #40
+	cmp R0, R1		; Testa condicoes de Contorno 
+	jle MoveNave_RecalculaPos_Fim
+	sub R0, R0, R1	; pos = pos - 40
+	jmp MoveNave_RecalculaPos_Fim
+
+  MoveNave_RecalculaPos_S:	; Move Nave para Baixo
+	loadn R1, #1159
+	cmp R0, R1		; Testa condicoes de Contorno 
+	jgr MoveNave_RecalculaPos_Fim
+	loadn R1, #40
+	add R0, R0, R1	; pos = pos + 40
+	jmp MoveNave_RecalculaPos_Fim	
+	
+  ;MoveNave_RecalculaPos_Tiro:	
+;	loadn R1, #1			; Se Atirou:
+;	store FlagTiro, R1		; FlagTiro = 1
+;	store posTiro, R0		; posTiro = posNave
+;	jmp MoveNave_RecalculaPos_Fim	
+;----------------------------------
+MoveNave_Desenha:	; Desenha caractere da Nave
+	push R0
+	push R1
+	
+	Loadn R1, #0	; Nave
+	load R0, posPersonagem
+	outchar R1, R0
+	store posAntPersonagem, R0	; Atualiza Posicao Anterior da Nave = Posicao Atual
+	
+	pop R1
+	pop R0
+	rts
+
+;----------------------------------
+;----------------------------------
+;----------------------------------
+
+
+;********************************************************
+;                       DELAY
+;********************************************************		
+
+
+Delay:
+						;Utiliza Push e Pop para nao afetar os Ristradores do programa principal
+	Push R0
+	Push R1
+	
+	Loadn R1, #5  ; a
+   Delay_volta2:				;Quebrou o contador acima em duas partes (dois loops de decremento)
+	Loadn R0, #3000	; b
+   Delay_volta: 
+	Dec R0					; (4*a + 6)b = 1000000  == 1 seg  em um clock de 1MHz
+	JNZ Delay_volta	
+	Dec R1
+	JNZ Delay_volta2
+	
+	Pop R1
+	Pop R0
+	
+	RTS							;return
+
+;-------------------------------
+
 
 	
 ; IMPRIME TELA2_______________________________________
@@ -344,4 +527,72 @@ tela5Linha26 : string "                 ...                    "
 tela5Linha27 : string "                ...                     "
 tela5Linha28 : string "               ....                     "
 tela5Linha29 : string "              .....                     "
+
+
+
+; Declara e preenche tela linha por linha (40 caracteres):
+tela6Linha0  : string "                                        "
+tela6Linha1  : string "                                        "
+tela6Linha2  : string "                                        "
+tela6Linha3  : string "                                        "
+tela6Linha4  : string "                                        "
+tela6Linha5  : string "                                        "
+tela6Linha6  : string "         **  **** **   **  ****         "
+tela6Linha7  : string "         ** ***   *** *** ***           "
+tela6Linha8  : string "         ** ***   ** * ** ***           "
+tela6Linha9  : string "         **  **** **   **  ****         "
+tela6Linha10 : string "                                        "
+tela6Linha11 : string " ***** *    ***** *** *  * **** * * *** "
+tela6Linha12 : string " *   * *    *   * *   * *  *  * * *  *  "
+tela6Linha13 : string " *  *  *    *   * *   **   *  * * *  *  "
+tela6Linha14 : string " *  *  *    * * * *   **   *  * * *  *  "
+tela6Linha15 : string " *   * *    *   * *   * *  *  * * *  *  "
+tela6Linha16 : string " ***** **** *   * *** *  * **** ***  *  "
+tela6Linha17 : string "                                        "
+tela6Linha18 : string " ______________________________________ "
+tela6Linha19 : string "                                        "
+tela6Linha20 : string "                       by JLP Studios   "
+tela6Linha21 : string "                                        "
+tela6Linha22 : string "                                        "
+tela6Linha23 : string "                                        "
+tela6Linha24 : string "                                        "
+tela6Linha25 : string "                                        "
+tela6Linha26 : string "                                        "
+tela6Linha27 : string "                                        "
+tela6Linha28 : string "                                        "
+tela6Linha29 : string "                                        "
+
+
+
+; Declara uma tela vazia para ser preenchida em tempo de execussao:
+tela7Linha0  : string "                                        "
+tela7Linha1  : string "  @@@@@@@  @                    @       "
+tela7Linha2  : string "  @     @  @                    @       "
+tela7Linha3  : string "  @@ @@@@  @                    @       "
+tela7Linha4  : string "           @                    @       "
+tela7Linha5  : string "  @@@@@@@@@@                    @       "
+tela7Linha6  : string "    @                           @       "
+tela7Linha7  : string " @@@@@@@@@@@@                   @       "
+tela7Linha8  : string " @  @     @                             "
+tela7Linha9  : string " @  @  @  @                     @       "
+tela7Linha10 : string "       @  @                     @       "
+tela7Linha11 : string " @@@  @@ @@                     @      "
+tela7Linha12 : string " @ @  @@@@@                     @       "
+tela7Linha13 : string " @ @                            @       "
+tela7Linha14 : string " @                              @       "
+tela7Linha15 : string " @@@@                           @      "
+tela7Linha16 : string "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@       "
+tela7Linha17 : string "                                        "
+tela7Linha18 : string "                                        "
+tela7Linha19 : string "                                        "
+tela7Linha20 : string "                                        "
+tela7Linha21 : string "                                        "
+tela7Linha22 : string "                                        "
+tela7Linha23 : string "                                        "
+tela7Linha24 : string "                                        "
+tela7Linha25 : string "                                        "
+tela7Linha26 : string "                                        "
+tela7Linha27 : string "                                        "
+tela7Linha28 : string "                                        "
+tela7Linha29 : string "                                        "	
 ;Telas_fim
