@@ -1,5 +1,8 @@
--- Jogo Enduro
--- Emanuel Valente - emanuelvalente@gmail.com
+-- Jogo Blackout
+-- Jansen Caik Ferreira Freitas
+-- Leonardo Minoru Iwashima - lminoru@usp.br
+-- Paulo Marcos Ordonha
+
 
 -- Character MAP for ARCHMB TEXT DRAWER
 
@@ -12,18 +15,9 @@ DATA_RADIX=BIN;
 CONTENT BEGIN
 
 
--- PERSONAGEM
-	0  :   11111111;
-	1  :   10000001;
-	2  :   10011001;
-	3  :   10100101;
-	4  :   10011001;
-	5  :   10011001;
-	6  :   10011001;
-	7  :   11111111;
 
 -- CARACTERES DE CONTROLE - LIVRES PARA EDICAO
-	[8..255]  :   00000000;
+	[0..255]  :   00000000;
 
 -- SPACE
 	[256..263]  :   00000000;
@@ -98,14 +92,15 @@ CONTENT BEGIN
 	334  :   00110000;
 	335  :   00000000;
 
--- *
-	336  :   00000000;
-	337  :   01100110;
-	338  :   00111100;
-	339  :   11111111;
-	340  :   00111100;
-	341  :   01100110;
-	[342..343]  :   00000000;
+-- PERSONAGEM (old *)
+	336  :   11111111;
+	337  :   10000001;
+	338  :   10011001;
+	339  :   10100101;
+	340  :   10011001;
+	341  :   10011001;
+	342  :   10011001;
+	343  :   11111111;
 
 -- +
 	344  :   00000000;
@@ -294,15 +289,8 @@ CONTENT BEGIN
 	510  :   00001000;
 	511  :   00000000;
 
--- @
-	512  :   11111111;
-	513  :   11111111;
-	514  :   11111111;
-	515  :   11111111;
-	516  :   11111111;
-	517  :   11111111;
-	518  :   11111111;
-	519  :   11111111;
+-- PAREDE (old @)
+	[512..519] :   11111111;
 
 -- CAPITALIZED ALPHABET
 
