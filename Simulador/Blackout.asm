@@ -48,6 +48,16 @@ main:
 	loadn R2, #1536  			; cor teal!
 	call ImprimeTela2   		;  Rotina de Impresao de Cenario na Tela Inteira
 	
+	; icmc	
+	loadn R1, #tela4Linha0	; Endereco onde comeca a primeira linha do cenario!!
+	loadn R2, #2816  			; cor amarelo!
+	call ImprimeTela2   		;  Rotina de Impresao de Cenario na Tela Inteira
+	
+	; veneno	
+	loadn R1, #telaVenenoLinha0	; Endereco onde comeca a primeira linha do cenario!!
+	loadn R2, #1280  			; cor roxo!
+	call ImprimeTela2   		;  Rotina de Impresao de Cenario na Tela Inteira
+	
 	 
 
     
@@ -71,7 +81,7 @@ main:
 		
 		; verifica se morreu 
 		loadn r6, #2    ; r6=2  
-		cmp r6, r7      ; colidiu com parede?
+		cmp r6, r7      ; morreu?
 		jeq gameover    ; sim: pula para rotina de game over 
 		
 		
@@ -81,7 +91,7 @@ main:
 		jmp loop
 		
 	gameover:
-		
+		call Delay2
 		call ApagaTela
 		loadn R1, #telaGameOverLinha0	; Endereco onde comeca a primeira linha do cenario!!
 		loadn R2, #2304  			; cor vermelha!
@@ -138,11 +148,18 @@ MoveNave:
 	
 			
 	checa_parede: ; verifica se o jogador colidiu com uma parede
-		loadn r6, #2
+		loadn r6, #1
 		cmp r6, r7
 		jne checa_continua
 		
-			jmp MoveNave_Skip;	jmp gameover ; finaliza partida.
+			jmp MoveNave_Skip;	;n faz nada
+			
+	;checa_morte: ; verifica se o jogador morreu
+		;loadn r6, #2
+		;cmp r6, r7
+		;jne checa_continua
+		
+		;	jmp MoveNave_Skip;	jmp gameover ; finaliza partida.
 			
 	checa_continua:
 	
@@ -290,26 +307,34 @@ MoveNave_ChecaPos:
 
 	loadi r2, r1	; r2 = Char (Tela(pos))
 	 
-	
-	loadn r1, #1600 ; checa se o jogador andou para uma parede(cod parede: 64 + cor teal: 1536).
+		;checa parede teal
+		loadn r1, #1600 ; checa se o jogador andou para uma parede(cod parede: 64 + cor teal: 1536).
 		cmp r2, r1
-		jne check_empty 
+		jne check_yellow_wall
+		jmp check_wall 
 	
-		jmp check_die
+	check_yellow_wall:	
+		loadn r1, #2880 ; checa se o jogador andou para uma parede(cod parede: 64 + cor amarela: 2816).
+		cmp r2, r1
+		jne check_veneno
+		jmp check_wall
 		
-	;; outros checks poderiam ser feitos aqui
-	;;
-	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	check_veneno: ; marca que tomou veneno
+		loadn r1, #1315 ; checa se o jogador andou para veneno(cod veneno: 35 + cor roxo: 1280).
+		cmp r2, r1
+		jne check_empty ; morra
+		jmp check_die
 	
-	check_die: ; marca que o jogador colidiu (deve morrer e acabar o jogo).
-
-		loadn r7, #2
+	check_die: ; marca que o jogador morrera (deve morrer e acabar o jogo).
+		loadn r7, #2 ; 2: die
 		jmp end_check
 		
+	check_wall: ; marca que o jogador andou para um espaco vazio (deve apenas se movimentar).
+		loadn r7, #1 ; 1: wall
+		jmp end_check
 		
 	check_empty: ; marca que o jogador andou para um espaco vazio (deve apenas se movimentar).
-	
-		loadn r7, #0		
+		loadn r7, #0 ; 0: move		
 	
 	end_check:
 
@@ -339,6 +364,26 @@ Delay:
 	Push R1
 	
 	Loadn R1, #5  ; a
+   Delay_volta2:				;Quebrou o contador acima em duas partes (dois loops de decremento)
+	Loadn R0, #3000	; b
+   Delay_volta: 
+	Dec R0					; (4*a + 6)b = 1000000  == 1 seg  em um clock de 1MHz
+	JNZ Delay_volta	
+	Dec R1
+	JNZ Delay_volta2
+	
+	Pop R1
+	Pop R0
+	
+	RTS							;return
+	
+	
+Delay2:
+						;Utiliza Push e Pop para nao afetar os Ristradores do programa principal
+	Push R0
+	Push R1
+	
+	Loadn R1, #300  ; a
    Delay_volta2:				;Quebrou o contador acima em duas partes (dois loops de decremento)
 	Loadn R0, #3000	; b
    Delay_volta: 
@@ -690,14 +735,14 @@ tela4Linha12 : string "                                        "
 tela4Linha13 : string "                                        "
 tela4Linha14 : string "                                        "
 tela4Linha15 : string "                                        "
-tela4Linha16 : string "         **  **** **   **  ****         "
-tela4Linha17 : string "         ** ***   *** *** ***           "
-tela4Linha18 : string "         ** ***   ** * ** ***           "
-tela4Linha19 : string "         **  **** **   **  ****         "
-tela4Linha20 : string "                                        "
-tela4Linha21 : string "                                        "
-tela4Linha22 : string "                                        "
-tela4Linha23 : string "                                        "
+tela4Linha16 : string "                                        "
+tela4Linha17 : string "                                        "
+tela4Linha18 : string "                                        "
+tela4Linha19 : string "                                        "
+tela4Linha20 : string "         @@  @@@@ @@   @@  @@@@         "
+tela4Linha21 : string "         @@ @@@   @@@ @@@ @@@           "
+tela4Linha22 : string "         @@ @@@   @@ @ @@ @@@           "
+tela4Linha23 : string "         @@  @@@@ @@   @@  @@@@         "
 tela4Linha24 : string "                                        "
 tela4Linha25 : string "                                        "
 tela4Linha26 : string "                                        "
@@ -772,6 +817,37 @@ tela7Linha26 : string "@                                      @"
 tela7Linha27 : string "@                                      @"
 tela7Linha28 : string "@                                      @"
 tela7Linha29 : string "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+
+telaVenenoLinha0  : string "                                        "
+telaVenenoLinha1  : string "                                        "
+telaVenenoLinha2  : string "                #                       "
+telaVenenoLinha3  : string "                                        "
+telaVenenoLinha4  : string "                                        "
+telaVenenoLinha5  : string "                                        "
+telaVenenoLinha6  : string "   #                               #    "
+telaVenenoLinha7  : string "                                        "
+telaVenenoLinha8  : string "                                        "
+telaVenenoLinha9  : string "                                        "
+telaVenenoLinha10 : string "                                        "
+telaVenenoLinha11 : string "                #          #            "
+telaVenenoLinha12 : string "                    #                   "
+telaVenenoLinha13 : string "                                        "
+telaVenenoLinha14 : string "                    #                   "
+telaVenenoLinha15 : string "                 #                      "
+telaVenenoLinha16 : string "                                        "
+telaVenenoLinha17 : string "                                        "
+telaVenenoLinha18 : string "                                        "
+telaVenenoLinha19 : string "                                        "
+telaVenenoLinha20 : string "                                #       "
+telaVenenoLinha21 : string "                                        "
+telaVenenoLinha22 : string "                                        "
+telaVenenoLinha23 : string "                                        "
+telaVenenoLinha24 : string "                                        "
+telaVenenoLinha25 : string "    #                               #   "
+telaVenenoLinha26 : string "                                        "
+telaVenenoLinha27 : string "                                        "
+telaVenenoLinha28 : string "                                        "
+telaVenenoLinha29 : string "                                        "
 
 
 
