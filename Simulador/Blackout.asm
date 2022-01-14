@@ -15,10 +15,12 @@ msg_start: string "PRESS 'SPACE' TO START" ; mensagem de inicio.
 
 ; main
 main:
+	; Tela inicial
 	call ApagaTela
 	loadn R1, #tela6Linha0	; Endereco onde comeca a primeira linha do cenario!!
 	loadn R2, #1536  			; cor teal!
 	call ImprimeTela    		;  Rotina de Impresao de Cenario na Tela Inteira
+	
 	
 	; printa a mensagem de inicio.
 	loadn R0, #1009			; posicao na tela onde a mensagem sera escrita
@@ -26,30 +28,28 @@ main:
 	loadn R2, #0			; seleciona a cor da mensagem
 	call ImprimeStr
 	
-	loop_wait_start: ; espera o jogador iniciar.
+	loop_espera_iniciar: ; espera o jogador iniciar.
 
 		loadn r0, #0 ; limpa o registrador que recebera input.
 		inchar r0 ; tenta receber input.
 		
 		loadn r1, #' ' ; verifica se o input ocorreu.
 		cmp r0, r1
-		jeq call_start ; inicia o jogo.
+		jeq start ; inicia o jogo.
 
-		jmp loop_wait_start ; continua o loop.
+		jmp loop_espera_iniciar ; continua o loop.
 	
 	
-	call_start:
+	start:
 	
-	call ApagaTela
-	loadn R1, #tela0Linha0	; Endereco onde comeca a primeira linha do cenario!!
-	loadn R2, #1536  			; cor teal!
-	call ImprimeTela2   		;  Rotina de Impresao de Cenario na Tela Inteira
-	
+	; mapa 1	
 	call ApagaTela
 	loadn R1, #tela7Linha0	; Endereco onde comeca a primeira linha do cenario!!
 	loadn R2, #1536  			; cor teal!
 	call ImprimeTela2   		;  Rotina de Impresao de Cenario na Tela Inteira
 	
+	 
+
     
     loadn R0, #1158			
 	store posPersonagem, R0		; Zera Posicao Atual da Nave
@@ -58,21 +58,66 @@ main:
 	loadn R1, #'*'
 	outchar R1, R0 ; Printa personagem 
 	
-	Loadn R0, #0			; Contador para os Mods	= 0
+	loadn R0, #0			; Contador para os Mods	= 0
 	loadn R2, #0			; Para verificar se (mod(c/10)==0
 		
 	
-	Loop:
-	
-		loadn R1, #5
-		mod R1, R0, R1
-		cmp R1, R2		; if (mod(c/10)==0
-		ceq MoveNave	; Chama Rotina de movimentacao da Nave
-	
-	
+	loop:
+		; rotina de movimentacao do personagem 
+		loadn R1, #5    ; "slowness" (inversamente prop a velocidade)
+		mod R1, R0, R1  ; resto p compara
+		cmp R1, R2		; if (mod(c/5)==0
+		ceq MoveNave	; chama rotina de movimentacao do personagem
+		
+		; verifica se morreu 
+		loadn r6, #2    ; r6=2  
+		cmp r6, r7      ; colidiu com parede?
+		jeq gameover    ; sim: pula para rotina de game over 
+		
+		
+		; delay do jogo
 		call Delay
 		inc R0 	;c++
-		jmp Loop
+		jmp loop
+		
+	gameover:
+		
+		call ApagaTela
+		loadn R1, #telaGameOverLinha0	; Endereco onde comeca a primeira linha do cenario!!
+		loadn R2, #2304  			; cor vermelha!
+		call ImprimeTela2    		;  Rotina de Impresao de Cenario na Tela Inteira
+		
+		loadn R1, #telaRestartLinha0	; Endereco onde comeca a primeira linha do cenario!!
+		loadn R2, #2304  			; cor vermelha!
+		call ImprimeTela2    		;  Rotina de Impresao de Cenario na Tela Inteira
+		
+		restart_loop: ; espera o jogador iniciar.
+
+			loadn r0, #0 ; limpa o registrador que recebera input.
+			inchar r0 ; tenta receber input.
+			
+			loadn r1, #' ' ; verifica se o input ocorreu.
+			cmp r0, r1
+			jeq restart_game ; pula para reiniciar o jogo.
+
+			jmp restart_loop ; continua o loop.
+			
+	restart_game:
+	
+		loadn r1, #255 ; carrega para comparacao.
+		espera_soltar_tecla_restart: ; espera a tecla ser solta.
+		
+		inchar r0
+		cmp r1, r0 ; condicao de saida.
+		jeq espera_soltar_tecla_restart_exit
+		
+		jmp espera_soltar_tecla_restart ; continua o loop.
+		
+	espera_soltar_tecla_restart_exit:
+		call LimpaMemoriaTela0
+			
+		jmp main  ; restarta o game
+	
 ; /main
 
 
@@ -97,18 +142,18 @@ MoveNave:
 		cmp r6, r7
 		jne checa_continua
 		
-			jmp gameover ; finaliza o jogo.
+			jmp MoveNave_Skip;	jmp gameover ; finaliza partida.
 			
 	checa_continua:
-; So' Apaga e Redesenha se (pos != posAnt)
-;	If (posNave != posAntNave)	{	
-	load r0, posPersonagem
-	load r1, posAntPersonagem
-	cmp r0, r1
-	jeq MoveNave_Skip
-		call MoveNave_Apaga
-		call MoveNave_Desenha		;}
-  MoveNave_Skip:
+	
+		load r0, posPersonagem
+		load r1, posAntPersonagem
+		cmp r0, r1
+		jeq MoveNave_Skip
+			call MoveNave_Apaga
+			call MoveNave_Desenha		;}.
+			
+  	MoveNave_Skip:
 	
 	pop r1
 	pop r0
@@ -121,25 +166,18 @@ MoveNave_Apaga:		; Apaga a Nave preservando o Cenario!
 	push R1
 	push R2
 	push R3
-	push R4
-	push R5
 
 	load R0, posAntPersonagem	; R0 = posAnt
 	
-	; --> R2 = Tela1Linha0 + posAnt + posAnt/40  ; tem que somar posAnt/40 no ponteiro pois as linas da string terminam com /0 !!
+	; --> R2 = Tela0 + posAnt  ;
 
-	loadn R1, #tela0Linha0	; Endereco onde comeca a primeira linha do cenario!!
-	add R2, R1, r0	; R2 = Tela1Linha0 + posAnt
-	loadn R4, #40
-	div R3, R0, R4	; R3 = posAnt/40
-	add R2, R2, R3	; R2 = Tela1Linha0 + posAnt + posAnt/40
+	loadn R1, #tela0	; Endereco onde comeca a primeira linha do cenario!!
+	add R2, R1, r0	; R2 = Tela0 + posAnt
 	
-	loadi R5, R2	; R5 = Char (Tela(posAnt))
+	loadi R3, R2	; R3 = Char (Tela(posAnt))
 	
-	outchar R5, R0	; Apaga o Obj na tela com o Char correspondente na memoria do cenario
+	outchar R3, R0	; Apaga o Obj na tela com o Char correspondente na memoria do cenario
 	
-	pop R5
-	pop R4
 	pop R3
 	pop R2
 	pop R1
@@ -241,18 +279,15 @@ MoveNave_ChecaPos:
 	push r0
 	push r1
 	push r2
-	push r3
 	
 	
-	; --> tela0Linha0 + pos + pos/40  ; tem que somar pos/40 no ponteiro pois as linhas da string terminam com /0 !!
+	; --> tela0 + pos ;
 	
 	load  r0, posPersonagem ; carrega a nova posicao do personagem da memoria. r0 = pos
-	loadn r1, #tela0Linha0  ; carrega a posicao inicial do mapa da memoria.    r1 = tela0Linha0
+	loadn r1, #tela0  ; carrega a posicao inicial do mapa da memoria.    r1 = tela0
 	
-	add r1, r0, r1  ; r1 = tela0Linha0 + posicao do jogador
-	loadn r2, #40	; r2 = 40
-	div r2, r0, r2	; r2 = pos/40
-	add r1, r1, r2	; r1 = tela0Linha0 + pos + pos/40
+	add r1, r0, r1  ; r1 = tela0 + posicao do jogador
+
 	loadi r2, r1	; r2 = Char (Tela(pos))
 	 
 	
@@ -278,21 +313,14 @@ MoveNave_ChecaPos:
 	
 	end_check:
 
-	pop r3 ; resgata os valores dos registradores utilizados na subrotina da pilha.
-	pop r2
+			
+	pop r2 ; resgata os valores dos registradores utilizados na subrotina da pilha.
 	pop r1
 	pop r0
 
 	rts
 	
 	
-gameover:
-	call ApagaTela
-	loadn R1, #tela5Linha0	; Endereco onde comeca a primeira linha do cenario!!
-	loadn R2, #2304  			; cor vermelha!
-	call ImprimeTela    		;  Rotina de Impresao de Cenario na Tela Inteira
-	
-	halt
 	
 
 ;----------------------------------
@@ -345,13 +373,13 @@ ImprimeTela2: 	;  Rotina de Impresao de Cenario na Tela Inteira
 	loadn R3, #40  	; Incremento da posicao da tela!
 	loadn R4, #41  	; incremento do ponteiro das linhas da tela
 	loadn R5, #1200 ; Limite da tela!
-	loadn R6, #tela0Linha0	; Endereco onde comeca a primeira linha do cenario!!
+	loadn R6, #tela0	; Endereco onde comeca a primeira linha do cenario!!
 	
    ImprimeTela2_Loop:
 		call ImprimeStr2
 		add r0, r0, r3  	; incrementaposicao para a segunda linha na tela -->  r0 = R0 + 40
 		add r1, r1, r4  	; incrementa o ponteiro para o comeco da proxima linha na memoria (40 + 1 porcausa do /0 !!) --> r1 = r1 + 41
-		add r6, r6, r4  	; incrementa o ponteiro para o comeco da proxima linha na memoria (40 + 1 porcausa do /0 !!) --> r1 = r1 + 41
+		add r6, r6, r3  	; incrementa o ponteiro para o comeco da proxima linha na memoria (40  porcausa do /0 so no fim !!) --> r1 = r1 + 40
 		cmp r0, r5			; Compara r0 com 1200
 		jne ImprimeTela2_Loop	; Enquanto r0 < 1200
 
@@ -419,6 +447,35 @@ ApagaTela:
 		outchar r1, r0
 		jnz ApagaTela_Loop
  
+	pop r1
+	pop r0
+	rts	
+; /APAGA TELA________________________________________________
+
+LimpaMemoriaTela0:
+	push r0
+	push r1
+	push r2
+	push r3
+	
+	loadn r0, #1199		; apaga as 1200 posicoes da Tela
+	loadn r1, #' '		; com "espaco"
+	loadn r2, #tela0
+	;loadn r4, #1200
+	   ; limpa do final do vetor para o inicio	
+	   LimpaMemoria_Loop:	;;label for(r3=1200;r3>0;r3--)
+		;add r3, r2, r0  ; r3 = posicao de char[i] na MEM
+		;loadn r3, #578
+		add r3, r2, r0  ; r3 = posicao de char[i] na MEM
+		storei r3, r1   ; MEM[i] = ' ' ; limpa char cm espaco vazio
+		dec r0
+		loadn r3, #0
+		cmp r0, r3
+		jne LimpaMemoria_Loop
+ 
+		
+ 	pop r3
+ 	pop r2
 	pop r1
 	pop r0
 	rts	
@@ -513,36 +570,8 @@ ImprimeStr:	;  Rotina de Impresao de Mensagens:    r0 = Posicao da tela que o pr
 ;************************************************************
 	
 ; Declara uma tela vazia para ser preenchida em tempo de execussao:
-tela0Linha0  : string "                                        "
-tela0Linha1  : string "                                        "
-tela0Linha2  : string "                                        "
-tela0Linha3  : string "                                        "
-tela0Linha4  : string "                                        "
-tela0Linha5  : string "                                        "
-tela0Linha6  : string "                                        "
-tela0Linha7  : string "                                        "
-tela0Linha8  : string "                                        "
-tela0Linha9  : string "                                        "
-tela0Linha10 : string "                                        "
-tela0Linha11 : string "                                        "
-tela0Linha12 : string "                                        "
-tela0Linha13 : string "                                        "
-tela0Linha14 : string "                                        "
-tela0Linha15 : string "                                        "
-tela0Linha16 : string "                                        "
-tela0Linha17 : string "                                        "
-tela0Linha18 : string "                                        "
-tela0Linha19 : string "                                        "
-tela0Linha20 : string "                                        "
-tela0Linha21 : string "                                        "
-tela0Linha22 : string "                                        "
-tela0Linha23 : string "                                        "
-tela0Linha24 : string "                                        "
-tela0Linha25 : string "                                        "
-tela0Linha26 : string "                                        "
-tela0Linha27 : string "                                        "
-tela0Linha28 : string "                                        "
-tela0Linha29 : string "                                        "	
+tela0  : string "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                "
+	
 
 ; Declara e preenche tela linha por linha (40 caracteres):
 tela1Linha0  : string "                                        "
@@ -678,39 +707,6 @@ tela4Linha29 : string "                                        "
 
 
 
-tela5Linha0  : string "                                        "
-tela5Linha1  : string "                                        "
-tela5Linha2  : string "              GAME OVER                 "
-tela5Linha3  : string "                                        "
-tela5Linha4  : string "                                        "
-tela5Linha5  : string "                                        "
-tela5Linha6  : string "                                        "
-tela5Linha7  : string "                                        "
-tela5Linha8  : string "                                        "
-tela5Linha9  : string "                                        "
-tela5Linha10 : string "                                        "
-tela5Linha11 : string "                                        "
-tela5Linha12 : string "                                        "
-tela5Linha13 : string "                                        "
-tela5Linha14 : string "                                        "
-tela5Linha15 : string "                                        "
-tela5Linha16 : string "                                        "
-tela5Linha17 : string "                                        "
-tela5Linha18 : string "                                        "
-tela5Linha19 : string "                                        "
-tela5Linha20 : string "                                        "
-tela5Linha21 : string "                                        "
-tela5Linha22 : string "                                        "
-tela5Linha23 : string "                                        "
-tela5Linha24 : string "                                        "
-tela5Linha25 : string "                                        "
-tela5Linha26 : string "                                        "
-tela5Linha27 : string "                                        "
-tela5Linha28 : string "                                        "
-tela5Linha29 : string "                                        "
-
-
-
 ; Declara e preenche tela linha por linha (40 caracteres):
 tela6Linha0  : string "                                        "
 tela6Linha1  : string "                                        "
@@ -775,5 +771,72 @@ tela7Linha25 : string "@                                      @"
 tela7Linha26 : string "@                                      @"
 tela7Linha27 : string "@                                      @"
 tela7Linha28 : string "@                                      @"
-tela7Linha29 : string "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"	
+tela7Linha29 : string "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+
+
+
+
+; Tela GAMEOVER
+telaGameOverLinha0  : string "                                        "
+telaGameOverLinha1  : string "                                        "
+telaGameOverLinha2  : string "                                        "
+telaGameOverLinha3  : string "                                        "
+telaGameOverLinha4  : string "                                        "
+telaGameOverLinha5  : string "                                        "
+telaGameOverLinha6  : string "                                        "
+telaGameOverLinha7  : string "                                        "
+telaGameOverLinha8  : string "                                        "
+telaGameOverLinha9  : string "                                        "
+telaGameOverLinha10 : string "                                        "
+telaGameOverLinha11 : string "                                        "
+telaGameOverLinha12 : string "                                        "
+telaGameOverLinha13 : string "                                        "
+telaGameOverLinha14 : string "                GAME OVER               "
+telaGameOverLinha15 : string "                                        "
+telaGameOverLinha16 : string "                                        "
+telaGameOverLinha17 : string "                                        "
+telaGameOverLinha18 : string "                                        "
+telaGameOverLinha19 : string "                                        "
+telaGameOverLinha20 : string "                                        "
+telaGameOverLinha21 : string "                                        "
+telaGameOverLinha22 : string "                                        "
+telaGameOverLinha23 : string "                                        "
+telaGameOverLinha24 : string "                                        "
+telaGameOverLinha25 : string "                                        "
+telaGameOverLinha26 : string "                                        "
+telaGameOverLinha27 : string "                                        "
+telaGameOverLinha28 : string "                                        "
+telaGameOverLinha29 : string "                                        "
+
+; Tela RESTART
+telaRestartLinha0  : string "                                        "
+telaRestartLinha1  : string "                                        "
+telaRestartLinha2  : string "                                        "
+telaRestartLinha3  : string "                                        "
+telaRestartLinha4  : string "                                        "
+telaRestartLinha5  : string "                                        "
+telaRestartLinha6  : string "                                        "
+telaRestartLinha7  : string "                                        "
+telaRestartLinha8  : string "                                        "
+telaRestartLinha9  : string "                                        "
+telaRestartLinha10 : string "                                        "
+telaRestartLinha11 : string "                                        "
+telaRestartLinha12 : string "                                        "
+telaRestartLinha13 : string "                                        "
+telaRestartLinha14 : string "                                        "
+telaRestartLinha15 : string "                                        "
+telaRestartLinha16 : string "                                        "
+telaRestartLinha17 : string "          PRESS 'SPACE' TO RESTART      "
+telaRestartLinha18 : string "                                        "
+telaRestartLinha19 : string "                                        "
+telaRestartLinha20 : string "                                        "
+telaRestartLinha21 : string "                                        "
+telaRestartLinha22 : string "                                        "
+telaRestartLinha23 : string "                                        "
+telaRestartLinha24 : string "                                        "
+telaRestartLinha25 : string "                                        "
+telaRestartLinha26 : string "                                        "
+telaRestartLinha27 : string "                                        "
+telaRestartLinha28 : string "                                        "
+telaRestartLinha29 : string "                                        "	
 ;Telas_fim
