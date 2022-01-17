@@ -75,7 +75,8 @@ main:
 	
 	loadn R0, #0			; Contador para os Mods	= 0
 	loadn R2, #0			; Para verificar se (mod(c/10)==0
-		
+	loadn R3, #0
+	loadn R5, #999          ; indica que acabou de comecar		
 	
 	loop:
 		; rotina de movimentacao do personagem 
@@ -94,7 +95,32 @@ main:
 		cmp r6, r7      ; ganhou?
 		jeq ganhou    ; sim: pula para rotina de ganhou
 		
-		
+		; piscar tela
+		loadn R1, #500    ; a cada 500 ciclos, entra (500 =~ 1s)
+		mod R1, R0, R1    ; resto p compara
+		cmp R1, R2		  ; if (mod(c/500)==0
+		jeq conta_pisca_tela  
+		jmp pula_pisca_tela
+		conta_pisca_tela:
+			inc r3           ; entra aqui a cada 1s aproximadamente
+			
+			loadn r1, #3     ; apaga o mapa dps de 5s
+			cmp r1, r3       ; 
+			ceq ApagaMapaIni ; 
+			
+			loadn r1, #1
+			cmp r1, r5       ; r5 = 1 ou 0 (map apagado?)
+			ceq ApagaMapa    ; subrotina a ser chamada a cada x segundos
+			
+			loadn r1, #7	 ; tempo x em segundos aprox	
+			mod r1, r3, r1  
+			cmp r1, r2
+			ceq MostraMapa    ; subrotina a ser chamada a cada x segundos
+			
+			
+		pula_pisca_tela:	
+			
+			
 		; delay do jogo
 		call Delay
 		inc R0 	;c++
@@ -383,7 +409,52 @@ MoveNave_ChecaPos:
 ;----------------------------------
 ;----------------------------------
 
+ApagaMapaIni:
+	push r0
+	push r1
+	
+	loadn r0, #999  ; r0 = 999
+	cmp r0, r5      ; if (r5===999)
+	ceq ApagaMapa	; apaga mapa 
+	
+	loadn r5, #0    ; zera flag que indica que acabou de comecar o game
+	
+	pop r1
+	pop r0
+	rts
 
+ApagaMapa:
+	push r0
+	push r1
+	
+	
+	call ApagaTela
+	load r0, posPersonagem
+	loadn r1, #'*'
+	outchar r1, r0
+	loadn r5, #0; flag de mapa invisivel
+	
+	pop r1
+	pop r0
+	rts
+	
+MostraMapa:
+	push r0
+	push r1
+	push r2
+	
+	
+	call PrintaTela0
+	load r0, posPersonagem
+	loadn r1, #'*'
+	outchar r1, r0
+	loadn r5, #1 ; flag de mapa visivel
+	
+	pop r2
+	pop r1
+	pop r0
+	rts
+	
 ;********************************************************
 ;                       DELAY
 ;********************************************************		
@@ -427,8 +498,8 @@ Delay2:
 	Pop R0
 	
 	RTS							;return
-
-;-------------------------------
+	
+	
 
 
 	
@@ -528,6 +599,7 @@ ApagaTela:
 	rts	
 ; /APAGA TELA________________________________________________
 
+; LIMPA TELA0________________________________________________
 LimpaMemoriaTela0:
 	push r0
 	push r1
@@ -555,7 +627,36 @@ LimpaMemoriaTela0:
 	pop r1
 	pop r0
 	rts	
-; /APAGA TELA________________________________________________
+; /LIMPA TELA0________________________________________________
+
+; PRINTA TELA0________________________________________________
+PrintaTela0:
+	push r0
+	push r1
+	push r2
+	push r3
+	
+	loadn r0, #1200		; printa as 1200 posicoes da Tela
+	loadn r1, #tela0
+
+	   ; limpa do final do vetor para o inicio	
+	   PrintaTela0_Loop:	; label for(r0=1200;r0>0;r0--)
+	    dec r0
+		add r2, r1, r0  ; r2 = posicao de char[i] na MEM
+		loadi r3, r2   ; r1 = MEM[i] ; recebe char da mem tela0 
+		outchar r3, r0
+		
+		loadn r3, #0
+		cmp r0, r3
+		jne PrintaTela0_Loop
+ 
+		
+ 	pop r3
+ 	pop r2
+	pop r1
+	pop r0
+	rts	
+; /PRINTA TELA0________________________________________________
 
 ;************************************************************
 
@@ -632,20 +733,48 @@ ImprimeStr:	;  Rotina de Impresao de Mensagens:    r0 = Posicao da tela que o pr
 	pop r0
 	rts
 	
-;------------------------	
+;---------------------
+
+
+;********************************************************
+;                       IMPRIME TELA
+;********************************************************	
+
+ImprimeTela0: 	;  Rotina de Impresao de Cenario na Tela Inteira
+
+	push r0	; protege o r3 na pilha para ser usado na subrotina
+	push r1	; protege o r1 na pilha para preservar seu valor
+	push r2	; protege o r1 na pilha para preservar seu valor
+	push r3	; protege o r3 na pilha para ser usado na subrotina
+	push r4	; protege o r4 na pilha para ser usado na subrotina
+	push r5	; protege o r4 na pilha para ser usado na subrotina
+
+	loadn R0, #0  	; posicao inicial tem que ser o comeco da tela!
+	loadn R3, #40  	; Incremento da posicao da tela!
+	loadn R4, #41  	; incremento do ponteiro das linhas da tela
+	loadn R5, #1200 ; Limite da tela!
 	
+	call ImprimeStr
+	add r0, r0, r3  	; incrementaposicao para a segunda linha na tela -->  r0 = R0 + 40
+	add r1, r1, r4  	; incrementa o ponteiro para o comeco da proxima linha na memoria (40 + 1 porcausa do /0 !!) --> r1 = r1 + 41
+	cmp r0, r5			; Compara r0 com 1200
+	jne ImprimeTela_Loop	; Enquanto r0 < 1200
 
-;-------------------------------
-
-
-
-
+	pop r5	; Resgata os valores dos registradores utilizados na Subrotina da Pilha
+	pop r4
+	pop r3
+	pop r2
+	pop r1
+	pop r0
+	rts
+				
+;---------------------
 
 ;************************************************************
 ;                          TELAS
 ;************************************************************
 	
-; Declara uma tela vazia para ser preenchida em tempo de execussao:
+; Declara uma tela vazia para ser preenchida em tempo de execucao:
 tela0  : string "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                "
 	
 
@@ -817,7 +946,7 @@ tela6Linha29 : string "                                        "
 
 
 
-; Declara uma tela vazia para ser preenchida em tempo de execussao:
+; Declara uma tela vazia para ser preenchida em tempo de execucao:
 tela7Linha0  : string "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 tela7Linha1  : string "@                               @      @"
 tela7Linha2  : string "@ @@@@@@@                       @      @"
