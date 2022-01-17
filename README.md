@@ -10,6 +10,9 @@ Blackout ICMC
 - O usuário pode anda pelo mapa através das tecla w, a, s, d
 - Ganha-se ao chegar no ponto verde
 
+![image of game](Imgs/Start.png)
+
+
 Jansen Caik Ferreira Freitas
 Leonardo Minoru Iwashima
 Paulo Marcos Ordonha
