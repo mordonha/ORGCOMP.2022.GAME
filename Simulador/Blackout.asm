@@ -58,6 +58,11 @@ main:
 	loadn R2, #1280  			; cor roxo!
 	call ImprimeTela2   		;  Rotina de Impresao de Cenario na Tela Inteira
 	
+	
+	; chegada	
+	loadn R1, #telaChegadaLinha0	; Endereco onde comeca a primeira linha do cenario!!
+	loadn R2, #512  			; cor verde!
+	call ImprimeTela2   		;  Rotina de Impresao de Cenario na Tela Inteira
 	 
 
     
@@ -84,6 +89,11 @@ main:
 		cmp r6, r7      ; morreu?
 		jeq gameover    ; sim: pula para rotina de game over 
 		
+		; verifica se ganhou 
+		loadn r6, #3    ; r6=3
+		cmp r6, r7      ; ganhou?
+		jeq ganhou    ; sim: pula para rotina de ganhou
+		
 		
 		; delay do jogo
 		call Delay
@@ -98,10 +108,23 @@ main:
 		call ImprimeTela2    		;  Rotina de Impresao de Cenario na Tela Inteira
 		
 		loadn R1, #telaRestartLinha0	; Endereco onde comeca a primeira linha do cenario!!
-		loadn R2, #0     			; cor vermelha!
+		loadn R2, #0     			; cor branca!
 		call ImprimeTela2    		;  Rotina de Impresao de Cenario na Tela Inteira
 		
-		restart_loop: ; espera o jogador iniciar.
+		jmp restart_loop
+	
+	ganhou:
+		call Delay2
+		call ApagaTela
+		loadn R1, #telaVenceuLinha0	; Endereco onde comeca a primeira linha do cenario!!
+		loadn R2, #512  			; cor verde!
+		call ImprimeTela2    		;  Rotina de Impresao de Cenario na Tela Inteira
+		
+		loadn R1, #telaRestartLinha0	; Endereco onde comeca a primeira linha do cenario!!
+		loadn R2, #0     			; cor branca!
+		call ImprimeTela2    		;  Rotina de Impresao de Cenario na Tela Inteira
+		
+	restart_loop: ; espera o jogador iniciar.
 
 			loadn r0, #0 ; limpa o registrador que recebera input.
 			inchar r0 ; tenta receber input.
@@ -152,14 +175,8 @@ MoveNave:
 		cmp r6, r7
 		jne checa_continua
 		
-			jmp MoveNave_Skip;	;n faz nada
-			
-	;checa_morte: ; verifica se o jogador morreu
-		;loadn r6, #2
-		;cmp r6, r7
-		;jne checa_continua
-		
-		;	jmp MoveNave_Skip;	jmp gameover ; finaliza partida.
+			jmp MoveNave_Skip;	;n faz nada	
+
 			
 	checa_continua:
 	
@@ -322,12 +339,24 @@ MoveNave_ChecaPos:
 	check_veneno: ; marca que tomou veneno
 		loadn r1, #1315 ; checa se o jogador andou para veneno(cod veneno: 35 + cor roxo: 1280).
 		cmp r2, r1
-		jne check_empty ; morra
-		jmp check_die
+		jne check_chegada
+		jmp check_die ; morra
+	
+	check_chegada: ; marca que chegou no objetivo
+		loadn r1, #576 ; checa se o jogador andou para a linha de chegada(cod parede: 64 + cor verde: 512).
+		cmp r2, r1
+		jne check_empty 
+		jmp check_venceu
+	
+	
+	
+	check_venceu: ; marca que o jogador venceu (deve ganhar e acabar o jogo).
+		loadn r7, #3 ; 3: die
+		jmp end_check
 	
 	check_die: ; marca que o jogador morrera (deve morrer e acabar o jogo).
 		loadn r7, #2 ; 2: die
-		jmp end_check
+		jmp end_check	
 		
 	check_wall: ; marca que o jogador andou para um espaco vazio (deve apenas se movimentar).
 		loadn r7, #1 ; 1: wall
@@ -851,7 +880,37 @@ telaVenenoLinha27 : string "                                        "
 telaVenenoLinha28 : string "                                        "
 telaVenenoLinha29 : string "                                        "
 
-
+; final
+telaChegadaLinha0  : string "                                        "
+telaChegadaLinha1  : string "  @                                     "
+telaChegadaLinha2  : string "                                        "
+telaChegadaLinha3  : string "                                        "
+telaChegadaLinha4  : string "                                        "
+telaChegadaLinha5  : string "                                        "
+telaChegadaLinha6  : string "                                        "
+telaChegadaLinha7  : string "                                        "
+telaChegadaLinha8  : string "                                        "
+telaChegadaLinha9  : string "                                        "
+telaChegadaLinha10 : string "                                        "
+telaChegadaLinha11 : string "                                        "
+telaChegadaLinha12 : string "                                        "
+telaChegadaLinha13 : string "                                        "
+telaChegadaLinha14 : string "                                        "
+telaChegadaLinha15 : string "                                        "
+telaChegadaLinha16 : string "                                        "
+telaChegadaLinha17 : string "                                        "
+telaChegadaLinha18 : string "                                        "
+telaChegadaLinha19 : string "                                        "
+telaChegadaLinha20 : string "                                        "
+telaChegadaLinha21 : string "                                        "
+telaChegadaLinha22 : string "                                        "
+telaChegadaLinha23 : string "                                        "
+telaChegadaLinha24 : string "                                        "
+telaChegadaLinha25 : string "                                        "
+telaChegadaLinha26 : string "                                        "
+telaChegadaLinha27 : string "                                        "
+telaChegadaLinha28 : string "                                        "
+telaChegadaLinha29 : string "                                        "
 
 
 ; Tela GAMEOVER
@@ -885,6 +944,38 @@ telaGameOverLinha26 : string "                                        "
 telaGameOverLinha27 : string "                                        "
 telaGameOverLinha28 : string "                                        "
 telaGameOverLinha29 : string "                                        "
+
+; Tela GANHOU
+telaVenceuLinha0  : string "                                        "
+telaVenceuLinha1  : string "                                        "
+telaVenceuLinha2  : string "                                        "
+telaVenceuLinha3  : string "                                        "
+telaVenceuLinha4  : string "                                        "
+telaVenceuLinha5  : string "                                        "
+telaVenceuLinha6  : string "                                        "
+telaVenceuLinha7  : string "           @   @  @@@  @   @            "
+telaVenceuLinha8  : string "           @@ @@ @   @ @   @            "
+telaVenceuLinha9  : string "            @@@  @   @ @   @            "
+telaVenceuLinha10 : string "             @   @   @ @   @            "
+telaVenceuLinha11 : string "             @    @@@  @@@@@            "
+telaVenceuLinha12 : string "                                        "
+telaVenceuLinha13 : string "           @   @   @   @   @            "
+telaVenceuLinha14 : string "           @   @   @   @@  @            "
+telaVenceuLinha15 : string "           @ @ @   @   @ @ @            "
+telaVenceuLinha16 : string "           @ @ @   @   @  @@            "
+telaVenceuLinha17 : string "            @@@    @   @   @            "
+telaVenceuLinha18 : string "                                        "
+telaVenceuLinha19 : string "                                        "
+telaVenceuLinha20 : string "                                        "
+telaVenceuLinha21 : string "                                        "
+telaVenceuLinha22 : string "                                        "
+telaVenceuLinha23 : string "                                        "
+telaVenceuLinha24 : string "                                        "
+telaVenceuLinha25 : string "                                        "
+telaVenceuLinha26 : string "                                        "
+telaVenceuLinha27 : string "                                        "
+telaVenceuLinha28 : string "                                        "
+telaVenceuLinha29 : string "                                        "
 
 ; Tela RESTART
 telaRestartLinha0  : string "                                        "
