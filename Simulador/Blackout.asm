@@ -331,6 +331,8 @@ MoveNave_ChecaPos:
 		
 	check_wall: ; marca que o jogador andou para um espaco vazio (deve apenas se movimentar).
 		loadn r7, #1 ; 1: wall
+		load r1, posAntPersonagem ;; recupera a posicao anterior
+		store posPersonagem, r1   ;; e salva 
 		jmp end_check
 		
 	check_empty: ; marca que o jogador andou para um espaco vazio (deve apenas se movimentar).
@@ -790,7 +792,7 @@ tela6Linha29 : string "                                        "
 tela7Linha0  : string "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 tela7Linha1  : string "@                               @      @"
 tela7Linha2  : string "@ @@@@@@@                       @      @"
-tela7Linha3  : string "@ @@@@@@@                       @      @"
+tela7Linha3  : string "@ @@@@@@@        @@             @      @"
 tela7Linha4  : string "@ @@@@@@@                   @   @      @"
 tela7Linha5  : string "@                           @   @      @"
 tela7Linha6  : string "@                           @   @      @"
