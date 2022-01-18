@@ -1,5 +1,7 @@
 # Blackout ICMC
-Jogo para disciplina de Organização de Computadores - 2022
+
+Jogo desenvolvido em assembly para disciplina do professor Eduardo do Valle Simões
+SSC0511 - Organização de Computadores Digitais - 2021
 
 ![image of game](Imgs/Start.png)
 ![image of game](Imgs/Map.png)
