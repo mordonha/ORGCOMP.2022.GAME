@@ -112,7 +112,7 @@ main:
 			cmp r1, r5       ; r5 = 1 ou 0 (map apagado?)
 			ceq ApagaMapa    ; subrotina a ser chamada a cada x segundos
 			
-			loadn r1, #7	 ; tempo x em segundos aprox	
+			loadn r1, #4	 ; tempo x em segundos aprox	
 			mod r1, r3, r1  
 			cmp r1, r2
 			ceq MostraMapa    ; subrotina a ser chamada a cada x segundos
