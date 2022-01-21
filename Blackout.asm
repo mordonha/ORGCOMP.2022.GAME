@@ -83,7 +83,7 @@ main:
 		loadn R1, #5    ; "slowness" (inversamente prop a velocidade)
 		mod R1, R0, R1  ; resto p compara
 		cmp R1, R2		; if (mod(c/5)==0
-		ceq MoveNave	; chama rotina de movimentacao do personagem
+		ceq MovePersonagem	; chama rotina de movimentacao do personagem
 		
 		; verifica se morreu 
 		loadn r6, #2    ; r6=2  
@@ -188,12 +188,12 @@ main:
 ;                         FUNÇÕES
 ;************************************************************
 
-MoveNave:
+MovePersonagem:
 	push r0
 	push r1
 	
-	call MoveNave_RecalculaPos		; Recalcula Posicao o Personagem
-	call MoveNave_ChecaPos          ; Checa em que posição o Personagem tentou ir
+	call MovePersonagem_RecalculaPos		; Recalcula Posicao o Personagem
+	call MovePersonagem_ChecaPos          ; Checa em que posição o Personagem tentou ir
 	
 			
 	checa_parede: ; verifica se o jogador colidiu com uma parede
@@ -201,7 +201,7 @@ MoveNave:
 		cmp r6, r7
 		jne checa_continua
 		
-			jmp MoveNave_Skip;	;n faz nada	
+			jmp MovePersonagem_Skip;	;n faz nada	
 
 			
 	checa_continua:
@@ -209,11 +209,11 @@ MoveNave:
 		load r0, posPersonagem
 		load r1, posAntPersonagem
 		cmp r0, r1
-		jeq MoveNave_Skip
-			call MoveNave_Apaga
-			call MoveNave_Desenha		;}.
+		jeq MovePersonagem_Skip
+			call MovePersonagem_Apaga
+			call MovePersonagem_Desenha		;}.
 			
-  	MoveNave_Skip:
+  	MovePersonagem_Skip:
 	
 	pop r1
 	pop r0
@@ -221,7 +221,7 @@ MoveNave:
 
 ;--------------------------------
 	
-MoveNave_Apaga:		; Apaga a Nave preservando o Cenario!
+MovePersonagem_Apaga:		; Apaga a Nave preservando o Cenario!
 	push R0
 	push R1
 	push R2
@@ -245,7 +245,7 @@ MoveNave_Apaga:		; Apaga a Nave preservando o Cenario!
 	rts
 ;----------------------------------	
 	
-MoveNave_RecalculaPos:		; Recalcula posicao do Personagem em funcao das Teclas pressionadas
+MovePersonagem_RecalculaPos:		; Recalcula posicao do Personagem em funcao das Teclas pressionadas
 	push R0
 	push R1
 	push R2
@@ -256,25 +256,22 @@ MoveNave_RecalculaPos:		; Recalcula posicao do Personagem em funcao das Teclas p
 	inchar R1				; Le Teclado para controlar o Personagem
 	loadn R2, #'a'
 	cmp R1, R2
-	jeq MoveNave_RecalculaPos_A
+	jeq MovePersonagem_RecalculaPos_A
 	
 	loadn R2, #'d'
 	cmp R1, R2
-	jeq MoveNave_RecalculaPos_D
+	jeq MovePersonagem_RecalculaPos_D
 		
 	loadn R2, #'w'
 	cmp R1, R2
-	jeq MoveNave_RecalculaPos_W
+	jeq MovePersonagem_RecalculaPos_W
 		
 	loadn R2, #'s'
 	cmp R1, R2
-	jeq MoveNave_RecalculaPos_S
+	jeq MovePersonagem_RecalculaPos_S
 	
-	;loadn R2, #' '
-	;cmp R1, R2
-	;jeq MoveNave_RecalculaPos_Tiro
 	
-  MoveNave_RecalculaPos_Fim:	; Se nao for nenhuma tecla valida, vai embora
+  MovePersonagem_RecalculaPos_Fim:	; Se nao for nenhuma tecla valida, vai embora
 	store posPersonagem, R0
 	pop R3
 	pop R2
@@ -282,46 +279,41 @@ MoveNave_RecalculaPos:		; Recalcula posicao do Personagem em funcao das Teclas p
 	pop R0
 	rts
 			
-  MoveNave_RecalculaPos_A:	; Move Nave para Esquerda
+  MovePersonagem_RecalculaPos_A:	; Move Personagem para Esquerda
 	loadn R1, #40
 	loadn R2, #0
 	mod R1, R0, R1		; Testa condicoes de Contorno 
 	cmp R1, R2
-	jeq MoveNave_RecalculaPos_Fim
+	jeq MovePersonagem_RecalculaPos_Fim
 	dec R0	; pos = pos -1
-	jmp MoveNave_RecalculaPos_Fim
+	jmp MovePersonagem_RecalculaPos_Fim
 		
-  MoveNave_RecalculaPos_D:	; Move Nave para Direita	
+  MovePersonagem_RecalculaPos_D:	; Move Personagem para Direita	
 	loadn R1, #40
 	loadn R2, #39
 	mod R1, R0, R1		; Testa condicoes de Contorno 
 	cmp R1, R2
-	jeq MoveNave_RecalculaPos_Fim
+	jeq MovePersonagem_RecalculaPos_Fim
 	inc R0	; pos = pos + 1
-	jmp MoveNave_RecalculaPos_Fim
+	jmp MovePersonagem_RecalculaPos_Fim
 	
-  MoveNave_RecalculaPos_W:	; Move Nave para Cima
+  MovePersonagem_RecalculaPos_W:	; Move Personagem para Cima
 	loadn R1, #40
 	cmp R0, R1		; Testa condicoes de Contorno 
-	jle MoveNave_RecalculaPos_Fim
+	jle MovePersonagem_RecalculaPos_Fim
 	sub R0, R0, R1	; pos = pos - 40
-	jmp MoveNave_RecalculaPos_Fim
+	jmp MovePersonagem_RecalculaPos_Fim
 
-  MoveNave_RecalculaPos_S:	; Move Nave para Baixo
+  MovePersonagem_RecalculaPos_S:	; Move Personagem para Baixo
 	loadn R1, #1159
 	cmp R0, R1		; Testa condicoes de Contorno 
-	jgr MoveNave_RecalculaPos_Fim
+	jgr MovePersonagem_RecalculaPos_Fim
 	loadn R1, #40
 	add R0, R0, R1	; pos = pos + 40
-	jmp MoveNave_RecalculaPos_Fim	
-	
-  ;MoveNave_RecalculaPos_Tiro:	
-;	loadn R1, #1			; Se Atirou:
-;	store FlagTiro, R1		; FlagTiro = 1
-;	store posTiro, R0		; posTiro = posNave
-;	jmp MoveNave_RecalculaPos_Fim	
+	jmp MovePersonagem_RecalculaPos_Fim	
+		
 ;----------------------------------
-MoveNave_Desenha:	; Desenha caractere da Nave
+MovePersonagem_Desenha:	; Desenha caractere da Nave
 	push R0
 	push R1
 	
@@ -335,7 +327,7 @@ MoveNave_Desenha:	; Desenha caractere da Nave
 	rts
 	
 	
-MoveNave_ChecaPos:
+MovePersonagem_ChecaPos:
 	push r0
 	push r1
 	push r2
