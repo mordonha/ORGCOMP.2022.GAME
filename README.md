@@ -19,8 +19,27 @@ SSC0511 - Organização de Computadores Digitais - 2021
 - Ganha-se ao chegar no ponto verde
 
 
+# Store imediato
+
+Nova instrução desenvolvida para o processador do ICMC
+
+## Instalar C++
+> https://github.com/brechtsanders/winlibs_mingw/releases/download/11.2.0-13.0.0-9.0.0-ucrt-r2/winlibs-i686-posix-dwarf-gcc-11.2.0-mingw-w64ucrt-9.0.0-r2.zip
+
+> Adicione no path das variáveis de ambiente o caminho até a pasta bin
+
+## Instalar GTK
+> Baixe as libraries do GTK em:
+http://ftp.gnome.org/pub/gnome/binaries/win32/gtk+/2.24/gtk+-bundle_2.24.10-20120208_win32.zip
+
+> Deszip os arquivos
+
+> Adicione no path das variáveis de ambiente o caminho até a pasta bin
 
 
-Jansen Caik Ferreira Freitas
-Leonardo Minoru Iwashima
-Paulo Marcos Ordonha
+## Integrantes:
+> Jansen Caik Ferreira Freitas
+> 
+> Leonardo Minoru Iwashima
+> 
+> Paulo Marcos Ordonha
