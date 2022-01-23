@@ -544,6 +544,7 @@ void Model::processador()
 
     case STOREIMED:
       mem[reg[rx]] = mem[pc];
+      pc++;
       break;
 
 
