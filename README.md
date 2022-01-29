@@ -20,7 +20,7 @@ SSC0511 - Organização de Computadores Digitais - 2021
 
 
 ## Como jogar:
-- [Vídeo explicativo]()
+- [Vídeo explicativo](https://youtu.be/9rImgjGsC_k)
 - Exibe-se o mapa por alguns segundos
 - Apaga-se o mapa, e o mesmo continua a piscar em ciclos de alguns segundos
 - Os ciclos variam de acordo com a movimentação do personagem
